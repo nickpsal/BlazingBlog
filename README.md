@@ -1,1 +1,1 @@
-#Blazing Blog with .net 8 and Blazor
+Blazing Blog with .net 8 and Blazor
