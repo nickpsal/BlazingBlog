@@ -64,10 +64,11 @@ namespace BlazingBlog.Services
 			var adminUser = await _UserManager.FindByEmailAsync(AdminAccount.Email);
 			if (adminUser is null)
 			{
-				//dont exists in DB
+				//user dont exists in DB
 				adminUser = new ApplicationUser();
 				adminUser.Name = AdminAccount.Name;
 				await _UserStore.SetUserNameAsync(adminUser, AdminAccount.Email, CancellationToken.None);
+				//store user email to db
 				var emailStore = (IUserEmailStore<ApplicationUser>)_UserStore;
 				await emailStore.SetEmailAsync(adminUser, AdminAccount.Email, CancellationToken.None); 
 				var result = await _UserManager.CreateAsync(adminUser, AdminAccount.Password);
@@ -75,9 +76,13 @@ namespace BlazingBlog.Services
 				{
 					var errorsString = result.Errors.Select(e => e.Description);
 					throw new Exception($"Error in Creating Admin User : {Environment.NewLine} {string.Join(Environment.NewLine, errorsString)}");
-				}else
+				}
+				//store to roles table at db Make user with admin prev
+				result = await _UserManager.AddToRoleAsync(adminUser, AdminAccount.Role);
+				if (!result.Succeeded)
 				{
-					await _UserManager.AddToRoleAsync(adminUser, AdminAccount.Role);
+					var errorsString = result.Errors.Select(e => e.Description);
+					throw new Exception($"Error on passing role to Admin : {Environment.NewLine} {string.Join(Environment.NewLine, errorsString)}");
 				}
 			}
 			//Seed Catogories
